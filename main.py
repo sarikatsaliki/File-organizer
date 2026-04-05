@@ -26,6 +26,11 @@ for file in files:
     target_dir = os.path.join(folder_path, target)
     if not os.path.exists(target_dir):
         os.makedirs(target_dir)
+    new_file_path = os.path.join(target_dir, file)
+        # 4. SAFETY CHECK: What if the file is already there?
+    if os.path.exists(new_file_path):
+        print(f"Skipping {file} - already exists in {target}")
+        continue
 
     # 4. MOVE THE FILE
     # (Move from 'test_folder/file' to 'test_folder/target/file')
