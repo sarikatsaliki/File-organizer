@@ -1,2 +1,4 @@
 __pycache__/
 *.pyc
+# Security: Ignore environment variables
+.env

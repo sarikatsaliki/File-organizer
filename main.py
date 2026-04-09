@@ -1,46 +1,61 @@
 import os
 import shutil
+from ai_logic import get_ai_category
 
-# mapping of extensions to their respective folders
+# 1. SETUP: Where are the files?
+# Use "." to scan the current folder where the script is
+SOURCE_DIR = "." 
+
+# 2. THE SIMPLE MAP (Fast & Local)
 EXTENSION_MAP = {
-    ".jpg": "Images", ".jpeg": "Images", ".png": "Images",
-    ".pdf": "Documents", ".txt": "Documents", ".docx": "Documents",
-    ".mp3": "Audio",
-    ".zip": "Archives"
+    ".jpg": "Personal",
+    ".png": "Personal",
+    ".mp4": "Personal",
+    ".py": "Coding",
+    ".cpp": "Coding",
+    ".java": "Coding",
+    ".xlsx": "Finance",
+    ".csv": "Finance"
 }
 
-def organize_folder(folder_path):
-    # Ensure the folder exists before scanning
-    if not os.path.exists(folder_path):
-        print(f"❌ Folder not found: {folder_path}")
-        return
-
-    for file in os.listdir(folder_path):
-        full_path = os.path.join(folder_path, file)
-
-        # Skip if it's a directory (we only move files)
-        if os.path.isdir(full_path):
+def organize_files():
+    required_folders = ["Education", "Coding", "Personal", "Finance", "Others"]
+    
+    for folder in required_folders:
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+            print(f" Created missing folder: {folder}")
+    print("Starting File Organizer...")
+    
+    # Loop through every file in the folder
+    for filename in os.listdir(SOURCE_DIR):
+        # Skip the scripts themselves!
+        if filename in ["main.py", "ai_logic.py", "test_ai.py"]:
+            continue
+            
+        # Skip folders
+        if os.path.isdir(os.path.join(SOURCE_DIR, filename)):
             continue
 
-        name, extension = os.path.splitext(file)
-        ext = extension.lower()
+        print(f"\n🔍 Processing: {filename}")
         
-        # Use 'Others' for unknown file types
-        target = EXTENSION_MAP.get(ext, "Others")
-        target_dir = os.path.join(folder_path, target)
+        # --- PHASE 1: Check Extension (Speed) ---
+        file_ext = os.path.splitext(filename)[1].lower()
+        target_folder = EXTENSION_MAP.get(file_ext)
 
-        if not os.path.exists(target_dir):
-            os.makedirs(target_dir)
-
-        new_file_path = os.path.join(target_dir, file)
-
-        # Only move if the file doesn't already exist in the target
-        if not os.path.exists(new_file_path):
-            shutil.move(full_path, new_file_path)
-            print(f"✅ Moved: {file} -> {target}")
+        # --- PHASE 2: Ask AI (The Brain) ---
+        if not target_folder:
+            print(f" Extension '{file_ext}' unknown. Asking AI...")
+            target_folder = get_ai_category(filename)
+        
+        # --- PHASE 3: Move the File ---
+        dest_path = os.path.join(SOURCE_DIR, target_folder, filename)
+        
+        try:
+            shutil.move(filename, dest_path)
+            print(f" Moved to -> {target_folder}")
+        except Exception as e:
+            print(f" Could not move {filename}: {e}")
 
 if __name__ == "__main__":
-    # Test path (uses current directory)
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    test_path = os.path.join(base_path, "test_folder")
-    organize_folder(test_path)
+    organize_files()
