@@ -1,21 +1,27 @@
-### 1. The Trigger: Event-Driven Monitoring
-The script uses the `watchdog` library to act as a background service. Instead of checking the folder manually, it "subscribes" to operating system signals.
-* **Mechanism:** When a file is dropped into the folder, the OS triggers a `created` event.
-* **Safety Delay:** A `time.sleep(1)` is implemented to ensure the file is fully downloaded and "released" by the OS before the script attempts to move it.
+# AI-Driven Hybrid File Organizer
 
-### 2. Tier 1: Deterministic Classification (The Fast Path)
-This is the "Rules" layer. It uses a Python Dictionary (`EXTENSION_MAP`) for instant sorting.
-* **Efficiency:** This is an O(1) lookup, meaning the speed is constant regardless of how many files you have.
-* **Use Case:** We use this for media files (JPG, MP3, MP4) because their destination is fixed and doesn't require "thinking" or context.
+### 1. Problem Statement
+Traditional organizers are context-blind. Sorting strictly by extension (e.g., all .pdf files into "Documents") fails to distinguish between technical lab reports, textbooks, and personal records.
 
-### 3. Tier 2: Semantic Classification (The AI Path)
-If a file has an ambiguous extension (like .pdf, .txt, or .py), the logic "falls through" to the AI layer.
-* **NLP Intelligence:** The filename is sent to the Hugging Face Inference API (`bart-large-mnli`). 
-* **Context Awareness:** Unlike Tier 1, the AI understands the "meaning" of the words. It knows "Operating_Systems.pdf" belongs in Education, while "script.py" belongs in Coding.
-* **Zero-Shot Learning:** The model is flexible; it can classify files into our specific folders without needing to be "trained" on our personal data first.
+### 2. Why I Built It
+I needed a tool that could read filenames. This project combines local Python logic with NLP to differentiate between files like DBMS_Lab.pdf (Coding) and Savings_Statement.pdf (Finance) automatically.
 
-### 4. The Execution: I/O Operations
-Once the destination is decided, the script handles the physical organization:
-* **Self-Healing:** It checks if the destination folder exists; if not, it uses `os.makedirs` to create it on the fly.
-* **Atomic Move:** It uses `shutil.move` to relocate the file.
-* **Error Handling:** The process is wrapped in `try-except` blocks. If the internet is down or a file is "in use," the script prints an error instead of crashing, allowing the watchdog to keep monitoring.
+### 3. Core Features
+* Event-Driven: Uses watchdog for real-time folder monitoring.
+* Hybrid Classification:
+  * Deterministic: O(1) dictionary lookup for media (Images, Audio).
+  * Semantic: AI-powered analysis for documents using the Hugging Face Inference API.
+* Security: API credentials managed via .env for safe deployment.
+
+### 4. Architecture
+The system utilizes a Hybrid Fall-through Architecture:
+
+1. Observer: Monitors the target folder for new file events.
+2. Fast Path: Immediate extension check against a local dictionary.
+3. AI Fallback: If the extension is ambiguous, the filename is sent to a BART-large-mnli model for classification.
+4. Execution: shutil handles the physical move to the predicted destination.
+
+### 5. Future Planned Improvements
+* Local LLM: Moving to Ollama for offline processing and privacy.
+* Deep Scan: Classifying based on file content rather than just the title.
+* GUI: A dashboard to monitor sorting accuracy and manual overrides.
