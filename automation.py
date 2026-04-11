@@ -1,4 +1,5 @@
 import time
+import time
 import os
 import shutil
 from watchdog.observers import Observer
@@ -18,10 +19,11 @@ class HybridHandler(FileSystemEventHandler):
                 # Wait for file handle to be released by OS
                 time.sleep(1) 
 
-                # Step 1: Extension-based sorting
+                # --- PHASE 1: Extension-based sorting (The Fast Path) ---
                 file_ext = os.path.splitext(filename)[1].lower()
                 target_folder = None
 
+                # Only auto-sort files that have zero ambiguity
                 if file_ext in ['.mp3', '.wav', '.m4a', '.flac']:
                     target_folder = "Audio"
                 elif file_ext in ['.jpg', '.jpeg', '.png', '.gif', '.svg']:
@@ -31,21 +33,25 @@ class HybridHandler(FileSystemEventHandler):
                 elif file_ext in ['.zip', '.rar', '.7z', '.tar']:
                     target_folder = "Archives"
 
-                # Step 2: AI Fallback
+                # --- PHASE 2: AI Fallback (The Brain) ---
+                # This will now handle .pdf, .txt, and anything not listed above
                 if not target_folder:
+                    print(f"Analyzing context for: {filename}")
                     target_folder = get_ai_category(filename)
                 
-                # Step 3: Move operation
+                # --- PHASE 3: Move operation ---
                 project_root = os.path.dirname(os.path.abspath(__file__))
                 test_folder = os.path.join(project_root, "test_folder")
                 target_dir = os.path.join(test_folder, target_folder)
 
+                # Ensure the destination folder exists
                 if not os.path.exists(target_dir):
                     os.makedirs(target_dir)
 
                 dest_path = os.path.join(target_dir, filename)
 
                 try:
+                    # Check if file still exists (Watchdog can trigger multiple times)
                     if os.path.exists(event.src_path):
                         shutil.move(event.src_path, dest_path)
                         print(f"Moved: {filename} -> {target_folder}")
@@ -56,6 +62,7 @@ if __name__ == "__main__":
     project_root = os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(project_root, "test_folder")
     
+    # Bootstrap the test folder if missing
     if not os.path.exists(path):
         os.makedirs(path)
     
@@ -63,12 +70,14 @@ if __name__ == "__main__":
     observer = Observer()
     observer.schedule(event_handler, path, recursive=False)
 
-    print(f"Monitoring folder: {path}")
+    print(f" AI WATCHDOG ENGINE STARTING...")
+    print(f" Monitoring folder: {path}")
     
     observer.start()
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
+        print("\nStopping Watchdog...")
         observer.stop()
     observer.join()

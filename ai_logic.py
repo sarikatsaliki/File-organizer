@@ -17,7 +17,7 @@ def get_ai_category(filename):
     Implements error handling for API latency and missing credentials.
     """
     if not TOKEN:
-        print("❌ SECURITY ERROR: HF_TOKEN not found in .env file!")
+        print(" SECURITY ERROR: HF_TOKEN not found in .env file!")
         return "Others"
 
     headers = {"Authorization": f"Bearer {TOKEN.strip()}"}
@@ -30,7 +30,7 @@ def get_ai_category(filename):
         
         # Handle "Model Loading" state (503 Service Unavailable)
         if response.status_code == 503:
-            print("⏳ AI model is warming up... Retrying in 15s.")
+            print(" AI model is warming up... Retrying in 15s.")
             time.sleep(15)
             return get_ai_category(filename)
             
@@ -46,5 +46,5 @@ def get_ai_category(filename):
             
         return "Others"
     except Exception as e:
-        print(f"⚠️ AI Logic Exception: {e}")
+        print(f" AI Logic Exception: {e}")
         return "Others"
