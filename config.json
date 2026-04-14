@@ -1,0 +1,12 @@
+{
+  "extensions": {
+    "Audio": [".mp3", ".wav", ".m4a", ".flac"],
+    "Images": [".jpg", ".jpeg", ".png", ".gif", ".svg"],
+    "Videos": [".mp4", ".mov", ".avi", ".mkv"],
+    "Archives": [".zip", ".rar", ".7z", ".tar"]
+  },
+  "settings": {
+    "retries": 5,
+    "delay": 2
+  }
+}
